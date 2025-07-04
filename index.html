@@ -7,10 +7,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f4f6f8;
@@ -18,136 +15,59 @@
       margin: 0;
       padding: 20px;
     }
-
-    h2 {
-      margin-top: 0;
-      color: #2c3e50;
-      font-size: 1.5em;
-    }
-
-    label {
-      font-weight: 600;
-    }
-
+    h2 { margin-top: 0; color: #2c3e50; font-size: 1.5em; }
+    label { font-weight: 600; }
     input[type="text"], input[type="number"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 4px;
-      margin-bottom: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1em;
+      width: 100%; padding: 10px; margin-top: 4px; margin-bottom: 8px;
+      border: 1px solid #ccc; border-radius: 6px; font-size: 1em;
     }
-
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      background-color: white;
-      border-radius: 6px;
-      overflow: hidden;
+      width: 100%; border-collapse: collapse; margin-top: 10px;
+      background-color: white; border-radius: 6px; overflow: hidden;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
-
-    th, td {
-      padding: 10px;
-      text-align: left;
-    }
-
+    th, td { padding: 10px; text-align: left; }
     th {
-      background-color: #2c3e50;
-      color: white;
-      font-size: 1em;
+      background-color: #2c3e50; color: white; font-size: 1em;
     }
-
     td {
-      border-bottom: 1px solid #eee;
-      font-size: 0.95em;
+      border-bottom: 1px solid #eee; font-size: 0.95em;
     }
-
     button {
-      background-color: #3498db;
-      color: white;
-      border: none;
-      padding: 10px 14px;
-      margin-top: 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
+      background-color: #3498db; color: white; border: none;
+      padding: 10px 14px; margin: 10px 6px 0 0;
+      border-radius: 6px; cursor: pointer; font-weight: bold;
       font-size: 1em;
     }
-
-    button:hover {
-      background-color: #2980b9;
-    }
-
+    button:hover { background-color: #2980b9; }
     #invoice {
-      margin-top: 30px;
-      padding: 20px;
-      background-color: white;
-      border-radius: 8px;
-      border: 1px solid #ddd;
+      margin-top: 30px; padding: 20px; background-color: white;
+      border-radius: 8px; border: 1px solid #ddd;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
-
     #grandTotal {
-      font-weight: bold;
-      font-size: 1.1em;
-      color: #2c3e50;
+      font-weight: bold; font-size: 1.1em; color: #2c3e50;
     }
-
     input.qty, input.satuan {
-      width: 45%;
-      display: inline-block;
-      margin-right: 5%;
+      width: 45%; display: inline-block; margin-right: 5%;
     }
-
-    input.harga {
-      width: 100%;
-    }
-
+    input.harga { width: 100%; }
     @media (max-width: 600px) {
-      th, td {
-        font-size: 0.85em;
-        padding: 6px;
-      }
-
-      input.qty, input.satuan {
-        width: 48%;
-        margin-bottom: 5px;
-      }
-
-      button {
-        width: 100%;
-        margin-top: 10px;
-      }
-
-      table, thead, tbody, th, td, tr {
-        display: block;
-      }
-
-      thead {
-        display: none;
-      }
-
+      th, td { font-size: 0.85em; padding: 6px; }
+      input.qty, input.satuan { width: 48%; margin-bottom: 5px; }
+      button { width: 100%; margin-top: 10px; }
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
       tbody tr {
-        margin-bottom: 15px;
-        border: 1px solid #ddd;
-        padding: 10px;
-        border-radius: 6px;
-        background-color: #fff;
+        margin-bottom: 15px; border: 1px solid #ddd; padding: 10px;
+        border-radius: 6px; background-color: #fff;
       }
-
       tbody td {
-        border: none;
-        padding: 4px 0;
+        border: none; padding: 4px 0;
       }
-
       tbody td:before {
-        content: attr(data-label);
-        font-weight: bold;
-        display: block;
-        color: #555;
+        content: attr(data-label); font-weight: bold;
+        display: block; color: #555;
       }
     }
   </style>
@@ -184,7 +104,8 @@
 </table>
 
 <button onclick="tambahBaris()">+ Tambah Barang</button>
-<button onclick="generateInvoice()">Save & Generate PDF</button>
+<button onclick="simpanInvoice()">Simpan Invoice</button>
+<button onclick="downloadPDF()">Download PDF</button>
 
 <div id="invoice" style="display:none;">
   <h3 id="judulInvoicePreview">Invoice</h3>
@@ -232,7 +153,7 @@ function formatRupiah(angka) {
   return 'Rp ' + angka.toLocaleString('id-ID');
 }
 
-function generateInvoice() {
+function simpanInvoice() {
   const rows = document.querySelectorAll("#itemBody tr");
   const invoiceBody = document.getElementById("invoiceBody");
   const judul = document.getElementById("judulInvoice").value || "Invoice";
@@ -249,7 +170,6 @@ function generateInvoice() {
     const subtotal = qty * harga;
     total += subtotal;
 
-    // Update subtotal on current row
     row.querySelector(".subtotal").innerText = formatRupiah(subtotal);
 
     invoiceBody.innerHTML += `
@@ -265,7 +185,10 @@ function generateInvoice() {
   document.getElementById("judulInvoicePreview").innerText = judul;
   document.getElementById("grandTotal").innerText = formatRupiah(total);
   document.getElementById("invoice").style.display = "block";
+}
 
+function downloadPDF() {
+  const judul = document.getElementById("judulInvoice").value || "Invoice";
   html2canvas(document.querySelector("#invoice")).then(canvas => {
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jspdf.jsPDF();
