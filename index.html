@@ -2,112 +2,119 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Invoice Generator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     * { box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f4f6f8;
-      color: #333;
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
       margin: 0;
       padding: 20px;
+      color: #333;
     }
-    h2 { margin-top: 0; color: #2c3e50; font-size: 1.5em; }
-    label { font-weight: 600; }
     input[type="text"], input[type="number"] {
-      width: 100%; padding: 10px; margin-top: 4px; margin-bottom: 8px;
-      border: 1px solid #ccc; border-radius: 6px; font-size: 1em;
-    }
-    table {
-      width: 100%; border-collapse: collapse; margin-top: 10px;
-      background-color: white; border-radius: 6px; overflow: hidden;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    th, td { padding: 10px; text-align: left; }
-    th {
-      background-color: #2c3e50; color: white; font-size: 1em;
-    }
-    td {
-      border-bottom: 1px solid #eee; font-size: 0.95em;
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
     button {
-      background-color: #3498db; color: white; border: none;
-      padding: 10px 14px; margin: 10px 6px 0 0;
-      border-radius: 6px; cursor: pointer; font-weight: bold;
-      font-size: 1em;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+      background-color: #3498db;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
     }
-    button:hover { background-color: #2980b9; }
+    button:hover {
+      background-color: #2980b9;
+    }
     #invoice {
-      margin-top: 30px; padding: 20px; background-color: white;
-      border-radius: 8px; border: 1px solid #ddd;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-top: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      overflow-x: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: none;
     }
-    #grandTotal {
-      font-weight: bold; font-size: 1.1em; color: #2c3e50;
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 700px;
     }
-    input.qty, input.satuan {
-      width: 45%; display: inline-block; margin-right: 5%;
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      white-space: nowrap;
+      text-align: left;
     }
-    input.harga { width: 100%; }
+    th {
+      background-color: #2c3e50;
+      color: white;
+    }
+    tfoot td {
+      font-weight: bold;
+    }
+    .qty-group {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-delete {
+      background-color: #e74c3c;
+      color: white;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn-delete:hover {
+      background-color: #c0392b;
+    }
     @media (max-width: 600px) {
-      th, td { font-size: 0.85em; padding: 6px; }
-      input.qty, input.satuan { width: 48%; margin-bottom: 5px; }
-      button { width: 100%; margin-top: 10px; }
-      table, thead, tbody, th, td, tr { display: block; }
-      thead { display: none; }
-      tbody tr {
-        margin-bottom: 15px; border: 1px solid #ddd; padding: 10px;
-        border-radius: 6px; background-color: #fff;
-      }
-      tbody td {
-        border: none; padding: 4px 0;
-      }
-      tbody td:before {
-        content: attr(data-label); font-weight: bold;
-        display: block; color: #555;
+      .qty-group {
+        flex-direction: column;
       }
     }
   </style>
 </head>
 <body>
 
-<h2>Generator Invoice</h2>
+<h2>Invoice Generator</h2>
 
 <label>Judul Invoice:</label>
-<input type="text" id="judulInvoice" placeholder="Contoh: Invoice Pembayaran Jasa"/>
+<input type="text" id="judulInvoice" placeholder="Contoh: Invoice Rumah Cibeunying" />
 
-<table id="itemTable">
-  <thead>
-    <tr>
-      <th>Nama Barang</th>
-      <th>Qty</th>
-      <th>Harga (Rp)</th>
-      <th>Subtotal (Rp)</th>
-      <th>Aksi</th>
-    </tr>
-  </thead>
-  <tbody id="itemBody">
-    <tr>
-      <td data-label="Nama Barang"><input type="text" class="nama" placeholder="Contoh: Kabel" /></td>
-      <td data-label="Qty">
-        <input type="number" class="qty" value="1" />
-        <input type="text" class="satuan" placeholder="kg / pcs" />
-      </td>
-      <td data-label="Harga"><input type="number" class="harga" value="0" /></td>
-      <td class="subtotal" data-label="Subtotal">Rp 0</td>
-      <td data-label="Aksi"><button onclick="hapusBaris(this)">Hapus</button></td>
-    </tr>
-  </tbody>
-</table>
+<label>Nama Barang:</label>
+<input type="text" id="namaBarang" placeholder="Contoh: Rumput" />
 
-<button onclick="tambahBaris()">+ Tambah Barang</button>
-<button onclick="simpanInvoice()">Simpan Invoice</button>
-<button onclick="downloadPDF()">Download PDF</button>
+<div class="qty-group">
+  <div style="flex:1">
+    <label>Qty:</label>
+    <input type="number" id="qty" value="1" min="1" />
+  </div>
+  <div style="flex:1">
+    <label>Satuan (opsional):</label>
+    <input type="text" id="satuan" placeholder="Contoh: pcs / m / kg" />
+  </div>
+</div>
 
-<div id="invoice" style="display:none;">
+<label>Harga (Rp):</label>
+<input type="number" id="harga" value="0" min="0" />
+
+<button id="btnSimpan">Simpan Item & Tampilkan Preview</button>
+<button id="btnDownload" style="display:none;">Download PDF</button>
+
+<div id="invoice">
   <h3 id="judulInvoicePreview">Invoice</h3>
   <table id="invoiceTable">
     <thead>
@@ -116,86 +123,91 @@
         <th>Qty</th>
         <th>Harga</th>
         <th>Subtotal</th>
+        <th>Hapus</th>
       </tr>
     </thead>
     <tbody id="invoiceBody"></tbody>
     <tfoot>
       <tr>
-        <td colspan="3"><strong>Total</strong></td>
-        <td id="grandTotal"><strong>Rp 0</strong></td>
+        <td colspan="3">Total</td>
+        <td id="grandTotal">Rp 0</td>
+        <td></td>
       </tr>
     </tfoot>
   </table>
 </div>
 
 <script>
-function tambahBaris() {
-  const tbody = document.getElementById("itemBody");
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td data-label="Nama Barang"><input type="text" class="nama" placeholder="Contoh: Barang" /></td>
-    <td data-label="Qty">
-      <input type="number" class="qty" value="1" />
-      <input type="text" class="satuan" placeholder="kg / pcs" />
-    </td>
-    <td data-label="Harga"><input type="number" class="harga" value="0" /></td>
-    <td class="subtotal" data-label="Subtotal">Rp 0</td>
-    <td data-label="Aksi"><button onclick="hapusBaris(this)">Hapus</button></td>
-  `;
-  tbody.appendChild(row);
-}
+  let items = [];
 
-function hapusBaris(btn) {
-  btn.parentElement.parentElement.remove();
-}
+  function formatRupiah(num) {
+    return 'Rp ' + Number(num).toLocaleString('id-ID');
+  }
 
-function formatRupiah(angka) {
-  return 'Rp ' + angka.toLocaleString('id-ID');
-}
+  function resetForm() {
+    document.getElementById('namaBarang').value = '';
+    document.getElementById('qty').value = 1;
+    document.getElementById('satuan').value = '';
+    document.getElementById('harga').value = 0;
+  }
 
-function simpanInvoice() {
-  const rows = document.querySelectorAll("#itemBody tr");
-  const invoiceBody = document.getElementById("invoiceBody");
-  const judul = document.getElementById("judulInvoice").value || "Invoice";
+  function updatePreview() {
+    const tbody = document.getElementById('invoiceBody');
+    const judul = document.getElementById('judulInvoice').value.trim() || "Invoice";
+    let total = 0;
+    tbody.innerHTML = '';
 
-  invoiceBody.innerHTML = "";
-  let total = 0;
+    items.forEach((item, index) => {
+      const subtotal = item.qty * item.harga;
+      total += subtotal;
+      const qtyDisplay = item.satuan ? `${item.qty}${item.satuan}` : item.qty;
 
-  rows.forEach(row => {
-    const nama = row.querySelector(".nama").value;
-    const qty = parseFloat(row.querySelector(".qty").value);
-    const satuan = row.querySelector(".satuan").value || '';
-    const qtyDisplay = satuan ? `${qty}${satuan}` : qty;
-    const harga = parseFloat(row.querySelector(".harga").value);
-    const subtotal = qty * harga;
-    total += subtotal;
+      tbody.innerHTML += `
+        <tr>
+          <td>${item.nama}</td>
+          <td>${qtyDisplay}</td>
+          <td>${formatRupiah(item.harga)}</td>
+          <td>${formatRupiah(subtotal)}</td>
+          <td><button class="btn-delete" onclick="hapusItem(${index})">×</button></td>
+        </tr>
+      `;
+    });
 
-    row.querySelector(".subtotal").innerText = formatRupiah(subtotal);
+    document.getElementById('grandTotal').innerText = formatRupiah(total);
+    document.getElementById('judulInvoicePreview').innerText = judul;
+    document.getElementById('invoice').style.display = items.length ? 'block' : 'none';
+    document.getElementById('btnDownload').style.display = items.length ? 'block' : 'none';
+  }
 
-    invoiceBody.innerHTML += `
-      <tr>
-        <td>${nama}</td>
-        <td>${qtyDisplay}</td>
-        <td>${formatRupiah(harga)}</td>
-        <td>${formatRupiah(subtotal)}</td>
-      </tr>
-    `;
+  function hapusItem(index) {
+    items.splice(index, 1);
+    updatePreview();
+  }
+
+  document.getElementById('btnSimpan').addEventListener('click', () => {
+    const nama = document.getElementById('namaBarang').value.trim();
+    const qty = parseFloat(document.getElementById('qty').value);
+    const satuan = document.getElementById('satuan').value.trim();
+    const harga = parseFloat(document.getElementById('harga').value);
+
+    if (!nama) return alert('Nama barang harus diisi.');
+    if (isNaN(qty) || qty <= 0) return alert('Qty harus lebih dari 0.');
+    if (isNaN(harga) || harga < 0) return alert('Harga tidak valid.');
+
+    items.push({ nama, qty, satuan, harga });
+    resetForm();
+    updatePreview();
   });
 
-  document.getElementById("judulInvoicePreview").innerText = judul;
-  document.getElementById("grandTotal").innerText = formatRupiah(total);
-  document.getElementById("invoice").style.display = "block";
-}
-
-function downloadPDF() {
-  const judul = document.getElementById("judulInvoice").value || "Invoice";
-  html2canvas(document.querySelector("#invoice")).then(canvas => {
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jspdf.jsPDF();
-    pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
-    pdf.save(`${judul.replace(/\s+/g, '_')}.pdf`);
+  document.getElementById('btnDownload').addEventListener('click', () => {
+    const judul = document.getElementById('judulInvoice').value.trim() || "Invoice";
+    html2canvas(document.querySelector('#invoice')).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jspdf.jsPDF();
+      pdf.addImage(imgData, 'PNG', 10, 10, 190, 0);
+      pdf.save(`${judul.replace(/\s+/g, '_')}.pdf`);
+    });
   });
-}
 </script>
 
 </body>
